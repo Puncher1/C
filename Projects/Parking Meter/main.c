@@ -75,7 +75,7 @@ int main(void) {
     int parkzeit;
     int while_main_main = 1;
 
-    int muenzenstock[6] = { 0, 2, 5, 6, 10, 15 };    // KANN VERÄNDERT WERDEN! -----------------------------------
+    int muenzenstock[6] = { 0, 2, 5, 6, 10, 15 };    // <- Coin stock: Changeable, ! -----------------------------------
 
     int franken_5 = muenzenstock[0];
     int franken_2 = muenzenstock[1];
