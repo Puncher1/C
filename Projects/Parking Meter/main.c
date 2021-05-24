@@ -1,21 +1,21 @@
 /*******************************************************************************
-* Programm:
+* Programm:	  main.c
 * Filename:   .c
 *
-* Autor:      Andrin Schaller
+* Author:     Andrin Schaller
 * Version:    1.0
-* Datum:      24.05.2021
+* Date:       24-MAY-2021
 *
 ********************************************************************************
-* Datum             Vers.    Kommentar / Änderungsgrund
-* 24.05.2021        1.0      Initial Version
+* Date             Vers.    Comment / Reason
+* 24-MAY-2021        1.0      Initial Version
 *
 *
 ********************************************************************************
 *
-* Verwendungszweck: C-Schulung
+* Usage: C training
 *
-* Beschreibung: Kassierstation: Erstellen einer Software für eine Kassierstation von einem Parkhaus
+* Description: Parking meter: Creation of a software for a cashier station in a parking garage
 * 
 *
 *
