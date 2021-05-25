@@ -63,4 +63,5 @@ dkms.conf
 *.vcxproj
 *.vcxproj.filters
 *.vcxproj.user
+*.enc
 
