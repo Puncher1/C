@@ -1,0 +1,9 @@
+
+JavaScript/node_modules/
+JavaScript/venv
+
+.vs
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
