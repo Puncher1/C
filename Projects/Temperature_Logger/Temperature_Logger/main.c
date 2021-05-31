@@ -93,8 +93,8 @@ void error_PathNotFound() {
 
 void error_FileNotWriteable(char* path, char* file_name, char* current_datetime) {
 
-    printf("\n%s - Fehler beim Oeffnen der Datei\t\t@ %s", file_name, current_datetime);
-    printf("\n\t\t\t\t\t\tPfad: %s", path);
+    printf("\n\n%s - Fehler beim Schreiben der Datei\t\t@ %s", file_name, current_datetime);
+    printf("\n\t\t\t\t\t\t\t\tPfad: %s", path);
 }
 // end error: FileNotWriteable
 
@@ -130,7 +130,7 @@ int main(void) {
     pathDefinition(&path_check, &day_str, &file_name_check);
     // end get path
 
-    fptr = fopen(path_check, "w");
+    fptr = fopen(path_check, "a");
 
     if (fptr == NULL) {
         error_PathNotFound();
@@ -148,17 +148,17 @@ int main(void) {
     // ...
     // end USB Port Input
     int count = 0;
-    char random_char[100];
+    char random_str[100];
 
     while (1) {
         if (count == 0) {
-            random_char[99] = "hallo;";
+            strcpy(random_str, "test1;Lol\n");
         }
         else if (count == 1) {
-            random_char[99] = "test1;";
+            strcpy(random_str, "test2;Lol\n");
         }
         else if (count == 2) {
-            random_char[99] = "kek;";
+            strcpy(random_str, "test3;Lol\n");
         }
 
         char time_str[100];
@@ -176,7 +176,7 @@ int main(void) {
         // end get path
 
 
-        fptr = fopen(path, "w");
+        fptr = fopen(path, "a");
         // end open file
 
         if (fptr == NULL) {
@@ -185,12 +185,11 @@ int main(void) {
             // end throw error
         }
         else {
-
-            fprintf(fptr, random_char);
+            fprintf(fptr, random_str);
             fclose(fptr);
 
-            printf("\n\n%s erfolgreich beschrieben \t\t@ %s", file_name, current_datetime);
-            printf("\n\t\t\t\t\t\tPfad: %s", path);
+            printf("\n\n%s erfolgreich beschrieben \t\t\t\t@ %s", file_name, current_datetime);
+            printf("\n\t\t\t\t\t\t\t\tPfad: %s", path);
         }
         // end write file
         count++;
