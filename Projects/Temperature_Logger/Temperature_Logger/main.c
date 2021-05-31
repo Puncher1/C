@@ -44,7 +44,7 @@
 
 /***  Funktions-Deklarationen *************************************************/
 void pathDefinition(char* path, char* day_str, char* file_name) {
-    
+
 
     strcat(path, "\\LogFile_");
     strcat(path, day_str);
@@ -116,7 +116,7 @@ int main(void) {
 
 
     // end Input
-    
+
     char time_str[100];
     char day_str[100];
     char current_datetime[100];
@@ -126,7 +126,7 @@ int main(void) {
 
 
     char file_name_check[100] = "LogFile_";
-   
+
     pathDefinition(&path_check, &day_str, &file_name_check);
     // end get path
 
@@ -169,7 +169,7 @@ int main(void) {
         // end get time
 
         char file_name[100] = "LogFile_";
-        
+
         copyString(path_input, path);
         pathDefinition(&path, &day_str, &file_name);
 
