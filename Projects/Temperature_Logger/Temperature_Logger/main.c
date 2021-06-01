@@ -43,8 +43,15 @@
 
 
 /***  Funktions-Deklarationen *************************************************/
-void pathDefinition(char* path, char* day_str, char* file_name) {
 
+
+void readInput(char *path_input) {
+    printf("Bitte Pfad angeben: ");
+    scanf("%s", path_input);
+}
+
+
+void pathDefinition(char* path, char* day_str, char* file_name) {
 
     strcat(path, "\\LogFile_");
     strcat(path, day_str);
@@ -109,23 +116,20 @@ int main(void) {
     char path_check[100];       // copy of 'path_input' -> to check if path is findable or if file is writeable if already exists
     char path[100];             // copy of 'path_input' -> actual path
 
-    printf("Bitte Pfad angeben: ");
-    scanf("%s", &path_input);
-    copyString(path_input, path);
-    copyString(path_input, path_check);
-
-
-    // end Input
-
     char time_str[100];
     char day_str[100];
     char current_datetime[100];
 
+    char file_name_check[100] = "LogFile_";
+
+    readInput(&path_input);
+    copyString(path_input, path);
+    copyString(path_input, path_check);
+    // end Input
+
     timeConstants(&time_str, &day_str, &current_datetime);
     // end get time
 
-
-    char file_name_check[100] = "LogFile_";
 
     pathDefinition(&path_check, &day_str, &file_name_check);
     // end get path
