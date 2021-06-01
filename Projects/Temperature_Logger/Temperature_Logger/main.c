@@ -44,10 +44,68 @@
 
 /***  Funktions-Deklarationen *************************************************/
 
+// ------------------------- ERROR FUNKTIONEN ----------------------------------
+
+void error_PathNotFound() {
+
+    printf("\nFehler beim Erstellen/Schreiben der Datei! Moegliche Fehlerursachen: ");
+    printf("\n\t- Pfad nicht gefunden");
+    printf("\n\t- Datei nicht beschreibbar");
+    printf("\n\t- Datei ist von einem anderen Benutzer geoeffnet");
+}
+// end error: PathNotFound
+
+
+void error_FileNotWriteable(char* path, char* file_name, char* current_datetime) {
+
+    printf("\n\n%s - Fehler beim Schreiben der Datei\t\t@ %s", file_name, current_datetime);
+    printf("\n\t\t\t\t\t\t\t\tPfad: %s", path);
+}
+// end error: FileNotWriteable
+
+
+// ------------------------- MAIN FUNKTIONEN ----------------------------------
 
 void readInput(char *path_input) {
     printf("Bitte Pfad angeben: ");
     scanf("%s", path_input);
+}
+// end read Input
+
+
+void checkFile(FILE *fptr, char *path_check) {
+    fptr = fopen(path_check, "a");
+
+    if (fptr == NULL) {
+        error_PathNotFound();
+
+        printf("\n");
+        return;
+        // end throw error
+    }
+    fclose(fptr);
+    printf("\nPfad erfolgreich gewaehlt.");
+}
+// end checkFile
+
+
+void writeFile(FILE* fptr, char* path, char* file_name, char* current_datetime) {
+    fptr = fopen(path, "a");
+
+    if (fptr == NULL) {
+        error_FileNotWriteable(&path, &file_name, &current_datetime);
+        printf("\n");
+    }
+    // end check file
+
+    else {
+        fprintf(fptr, "hallo;hallo;hallo\n");
+        fclose(fptr);
+
+        printf("\n\n%s erfolgreich beschrieben \t\t\t\t@ %s", file_name, current_datetime);
+        printf("\n\t\t\t\t\t\t\t\tPfad: %s", path);
+    }
+    // end write file
 }
 
 
@@ -88,117 +146,74 @@ void copyString(char* original, char* copy) {
 // end copy string
 
 
-void error_PathNotFound() {
-
-    printf("\nFehler beim Erstellen/Schreiben der Datei! Moegliche Fehlerursachen: ");
-    printf("\n\t- Pfad nicht gefunden");
-    printf("\n\t- Datei nicht beschreibbar");
-    printf("\n\t- Datei ist von einem anderen Benutzer geoeffnet");
-}
-// end error: PathNotFound
-
-
-void error_FileNotWriteable(char* path, char* file_name, char* current_datetime) {
-
-    printf("\n\n%s - Fehler beim Schreiben der Datei\t\t@ %s", file_name, current_datetime);
-    printf("\n\t\t\t\t\t\t\t\tPfad: %s", path);
-}
-// end error: FileNotWriteable
-
-
 /*******************************************************************************
 ******************************* HAUPTPROGRAMM **********************************
 *******************************************************************************/
 int main(void) {
-
     FILE* fptr;
     char path_input[100];       // constant array -> doesn't get changed
     char path_check[100];       // copy of 'path_input' -> to check if path is findable or if file is writeable if already exists
     char path[100];             // copy of 'path_input' -> actual path
 
-    char time_str[100];
-    char day_str[100];
-    char current_datetime[100];
+    char time_str_check[100];
+    char day_str_check[100];
+    char current_datetime_check[100];
 
     char file_name_check[100] = "LogFile_";
+    // end local constants
 
     readInput(&path_input);
     copyString(path_input, path);
     copyString(path_input, path_check);
     // end Input
 
-    timeConstants(&time_str, &day_str, &current_datetime);
-    // end get time
+    timeConstants(&time_str_check, &day_str_check, &current_datetime_check);
+    // end get time for checkFile
 
+    pathDefinition(&path_check, &day_str_check, &file_name_check);
+    // end get path for checkFile
 
-    pathDefinition(&path_check, &day_str, &file_name_check);
-    // end get path
-
-    fptr = fopen(path_check, "a");
-
-    if (fptr == NULL) {
-        error_PathNotFound();
-
-        printf("\n");
-        return;
-        // end throw error
-    }
-    fclose(fptr);
-    printf("\nPfad erfolgreich gewaehlt.");
-
+    checkFile(&fptr, &path_check);
     // end check if file exists 
 
 
     // ...
     // end USB Port Input
-    int count = 0;
-    char random_str[100];
 
-    while (1) {
-        if (count == 0) {
-            strcpy(random_str, "test1;Lol\n");
-        }
-        else if (count == 1) {
-            strcpy(random_str, "test2;Lol\n");
-        }
-        else if (count == 2) {
-            strcpy(random_str, "test3;Lol\n");
-        }
+    char time_str[100];
+    char day_str[100];
+    char current_datetime[100];
 
-        char time_str[100];
-        char day_str[100];
-        char current_datetime[100];
+    char file_name[100] = "LogFile_";
+    // end local constants
 
-        timeConstants(&time_str, &day_str, &current_datetime);
-        // end get time
+    timeConstants(&time_str, &day_str, &current_datetime);
+    // end get time
 
-        char file_name[100] = "LogFile_";
+    copyString(path_input, path);
+    pathDefinition(&path, &day_str, &file_name);
+    // end get path
+    
+   
 
-        copyString(path_input, path);
-        pathDefinition(&path, &day_str, &file_name);
+    FILE* file_COM;
+    file_COM = fopen("\\\\.\\COM4", "r");
+    char data[100];
 
-        // end get path
-
-
-        fptr = fopen(path, "a");
-        // end open file
-
-        if (fptr == NULL) {
-            error_FileNotWriteable(&path, &file_name, &current_datetime);
-            printf("\n");
-            // end throw error
-        }
-        else {
-            fprintf(fptr, random_str);
-            fclose(fptr);
-
-            printf("\n\n%s erfolgreich beschrieben \t\t\t\t@ %s", file_name, current_datetime);
-            printf("\n\t\t\t\t\t\t\t\tPfad: %s", path);
-        }
-        // end write file
-        count++;
-        Sleep(10 * 1000);
+    if (file_COM == NULL) {
+        printf("COM existiert nicht");
+        return;
     }
+
+    fread(data, 100, 1, file_COM);
+    printf("%s\n", data);
+    printf("\nData: %s", data);
+
+    fclose(file_COM);
+
+    //writeFile(&fptr, &path, &file_name, &current_datetime);
+    // end writeFile
+
 
     printf("\n");
     return (0);
