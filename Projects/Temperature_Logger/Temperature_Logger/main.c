@@ -74,7 +74,7 @@ void readInput(char *path_input) {
 
 
 void checkFile(FILE *fptr, char *path_check) {
-    fptr = fopen(path_check, "a");
+    fptr = fopen(path_check, "a");  // open file as "append"
 
     if (fptr == NULL) {
         error_PathNotFound();
@@ -90,7 +90,7 @@ void checkFile(FILE *fptr, char *path_check) {
 
 
 void writeFile(FILE* fptr, char* path, char* file_name, char* current_datetime) {
-    fptr = fopen(path, "a");
+    fptr = fopen(path, "a");        // open file as "append"
 
     if (fptr == NULL) {
         error_FileNotWriteable(&path, &file_name, &current_datetime);
@@ -123,14 +123,14 @@ void pathDefinition(char* path, char* day_str, char* file_name) {
 void timeConstants(char* time_str, char* day_str, char* current_datetime) {
     time_t rawtime;
     struct tm* timeinfo;
-    // end local constants
+    // end local variables
 
     time(&rawtime);
     timeinfo = localtime(&rawtime);
 
-    strftime(time_str, 100, "%H:%M Uhr", timeinfo);
-    strftime(day_str, 100, "%y%m%d", timeinfo);
-    strftime(current_datetime, 100, "%d.%m.%y, %H:%M:%S", timeinfo);
+    strftime(time_str, 100, "%H:%M Uhr", timeinfo);                     // Time for file input
+    strftime(day_str, 100, "%y%m%d", timeinfo);                         // Date for file name
+    strftime(current_datetime, 100, "%d.%m.%y, %H:%M:%S", timeinfo);    // Datetime for CMD
     // end time formatting
 }
 // end time constants
@@ -150,6 +150,51 @@ void copyString(char* original, char* copy) {
 ******************************* HAUPTPROGRAMM **********************************
 *******************************************************************************/
 int main(void) {
+
+    HANDLE hComm;
+
+    hComm = CreateFileA("\\\\.\\COM3",                //port name
+        GENERIC_READ | GENERIC_WRITE, //Read/Write
+        0,                            // No Sharing
+        NULL,                         // No Security
+        OPEN_EXISTING,// Open existing port only
+        0,            // Non Overlapped I/O
+        NULL);        // Null for Comm Devices
+
+    if (hComm == INVALID_HANDLE_VALUE) {
+        printf("Konnte COM Port nicht oeffnen.");
+        return;
+    }
+
+    DCB Dcb;
+
+    GetCommState(hComm, &Dcb);
+
+    Dcb.BaudRate = CBR_115200;
+    Dcb.StopBits = ONESTOPBIT;
+    Dcb.ByteSize = 8;
+    Dcb.Parity = NOPARITY;
+    Dcb.fParity = 0;
+    Dcb.fOutxCtsFlow = 0;
+    Dcb.fOutxDsrFlow = 0;
+    Dcb.fDsrSensitivity = 0;
+    Dcb.fTXContinueOnXoff = TRUE;
+    Dcb.fOutX = 0;
+    Dcb.fInX = 0;
+    Dcb.fNull = 0;
+    Dcb.fErrorChar = 0;
+    Dcb.fAbortOnError = 0;
+    Dcb.fRtsControl = RTS_CONTROL_DISABLE;
+    Dcb.fDtrControl = DTR_CONTROL_DISABLE;
+
+    SetCommState(hComm, &Dcb);
+    char buffer[100];
+    int nbRead;
+    ReadFile(hComm, buffer, 10, &nbRead, NULL);
+    CloseHandle(hComm);
+    printf("%s", buffer);
+
+
     FILE* fptr;
     char path_input[100];       // constant array -> doesn't get changed
     char path_check[100];       // copy of 'path_input' -> to check if path is findable or if file is writeable if already exists
@@ -160,7 +205,7 @@ int main(void) {
     char current_datetime_check[100];
 
     char file_name_check[100] = "LogFile_";
-    // end local constants
+    // end local variables
 
     readInput(&path_input);
     copyString(path_input, path);
@@ -185,7 +230,7 @@ int main(void) {
     char current_datetime[100];
 
     char file_name[100] = "LogFile_";
-    // end local constants
+    // end local variables
 
     timeConstants(&time_str, &day_str, &current_datetime);
     // end get time
@@ -194,24 +239,7 @@ int main(void) {
     pathDefinition(&path, &day_str, &file_name);
     // end get path
     
-   
-
-    FILE* file_COM;
-    file_COM = fopen("\\\\.\\COM4", "r");
-    char data[100];
-
-    if (file_COM == NULL) {
-        printf("COM existiert nicht");
-        return;
-    }
-
-    fread(data, 100, 1, file_COM);
-    printf("%s\n", data);
-    printf("\nData: %s", data);
-
-    fclose(file_COM);
-
-    //writeFile(&fptr, &path, &file_name, &current_datetime);
+    writeFile(&fptr, &path, &file_name, &current_datetime);
     // end writeFile
 
 
