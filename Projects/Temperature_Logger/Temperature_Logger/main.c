@@ -64,7 +64,7 @@ void error_PathNotFound() {
 
 void error_ComNotFound() {
 
-    printf("\ERROR! COM Port not found.");
+    printf("\nERROR! COM Port not found.");
     printf("\nPlease make sure you provide the correct COM Port.\n");
 }
 // end error: PathNotFound
@@ -294,7 +294,6 @@ int main(void) {
     char day_str_check[100];
     char current_datetime_check[100];
     char file_name_check[100] = "LogFile_";
-
     // end local variables
 
     while (read_path_loop) {                // loop to repeat file reading after writing file
@@ -326,7 +325,6 @@ int main(void) {
 
     printf("\nThe serial port is read out and the data get calculated...");
     while (read_main_loop) {
-
         int read_count = 0;
 
         double avg_temperature;
