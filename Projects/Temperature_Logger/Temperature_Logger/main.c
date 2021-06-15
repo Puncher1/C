@@ -263,7 +263,7 @@ void writeFile(FILE* fptr, char* path, char* file_name, double avg_temperature,
 
     else {
 
-        fprintf(fptr, "%.1lf%c C; ;%s\n", avg_temperature, 176, current_datetime); // 176 = °
+        fprintf(fptr, "%.1lf%c C; ;%s\n", avg_temperature, '°', current_datetime); 
         fclose(fptr);
 
         printf("\n\n%s - Success writing the file\t\t@ %s", file_name, current_datetime);
@@ -343,14 +343,14 @@ int main(void) {
         pathDefinition(&path, &day_str, &file_name);
 
 
-        while ((read_count <= 1) && (read_loop)) {  // 60 times (1 time per second)
+        while ((read_count <= 59) && (read_loop)) {  // 60 times (1 time per second)
             readSerialPort(&buffer, com_path);
             temp_temperature += getBufferAsDouble(&buffer);
 
             read_count++;
         }
 
-        avg_temperature = temp_temperature / 2;   // 120 times per minute when waiting 500ms per iteration.
+        avg_temperature = temp_temperature / 60;   // 120 times per minute when waiting 500ms per iteration.
         writeFile(&fptr, &path, &file_name, avg_temperature, &current_datetime);
         // end writeFile
 
