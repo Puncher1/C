@@ -7,7 +7,7 @@
 * Datum:      25.05.2021
 *
 ********************************************************************************
-* Datum             Vers.    Kommentar / Änderungsgrund
+* Datum             Vers.    Kommentar / Ã„nderungsgrund
 * 25.05.2021        1.0      Initial Version
 *
 *
@@ -22,14 +22,14 @@
 *
 * Postcondition: -
 *
-* Benötigte Libraries:
+* BenÃ¶tigte Libraries:
 * - stdlib.h
 * - stdio.h
 *
-* Copyright (©) 2021 by Andrin Schaller, CH-6300 Zug
+* Copyright (Â©) 2021 by Andrin Schaller, CH-6300 Zug
 *******************************************************************************/
 
-/*** Präprozessor Definitionen ************************************************/
+/*** PrÃ¤prozessor Definitionen ************************************************/
 #define _CRT_SECURE_NO_WARNINGS
 
 /***  Include Files ***********************************************************/
@@ -37,76 +37,45 @@
 #include <stdio.h>  /* Funktionsbibliothek: Standard Ein- Ausgabe */
 #include <time.h>   /* Zeitfunktionen */
 #include <string.h> /* Weitere String-Funktionen */
-#include <Windows.h> /* Für Sleep() Funktion */
+#include <Windows.h> /* FÃ¼r Sleep() Funktion */
 
 /***  Globale Deklarationen und Definitionen **********************************/
-
+int read_path_loop = 1;
+int read_com_loop = 1;
+int read_main_loop = 1;
+int read_loop = 1;
 
 /***  Funktions-Deklarationen *************************************************/
 
-// ------------------------- ERROR FUNKTIONEN ----------------------------------
+// ------------------------- ERROR FUNCTIONS ----------------------------------
 
 void error_PathNotFound() {
 
-    printf("\nFehler beim Erstellen/Schreiben der Datei! Moegliche Fehlerursachen: ");
-    printf("\n\t- Pfad nicht gefunden");
-    printf("\n\t- Datei nicht beschreibbar");
-    printf("\n\t- Datei ist von einem anderen Benutzer geoeffnet");
+    printf("\nError reading/writing the file. Possible error causes: ");
+    printf("\n\t- Path not found");
+    printf("\n\t- File not writeable");
+    printf("\n\t- File is opened by another user\n");
+}
+// end error: PathNotFound
+
+
+void error_ComNotFound() {
+
+    printf("\nError! COM Port not found.");
+    printf("\nPlease make sure you provide the correct COM Port.\n");
 }
 // end error: PathNotFound
 
 
 void error_FileNotWriteable(char* path, char* file_name, char* current_datetime) {
 
-    printf("\n\n%s - Fehler beim Schreiben der Datei\t\t@ %s", file_name, current_datetime);
+    printf("\n\n%s - Error writing the file\t\t@ %s", file_name, current_datetime);
     printf("\n\t\t\t\t\t\t\t\tPfad: %s", path);
 }
 // end error: FileNotWriteable
 
 
-// ------------------------- MAIN FUNKTIONEN ----------------------------------
-
-void readInput(char *path_input) {
-    printf("Bitte Pfad angeben: ");
-    scanf("%s", path_input);
-}
-// end read Input
-
-
-void checkFile(FILE *fptr, char *path_check) {
-    fptr = fopen(path_check, "a");  // open file as "append"
-
-    if (fptr == NULL) {
-        error_PathNotFound();
-
-        printf("\n");
-        return;
-        // end throw error
-    }
-    fclose(fptr);
-    printf("\nPfad erfolgreich gewaehlt.");
-}
-// end checkFile
-
-
-void writeFile(FILE* fptr, char* path, char* file_name, char* current_datetime) {
-    fptr = fopen(path, "a");        // open file as "append"
-
-    if (fptr == NULL) {
-        error_FileNotWriteable(&path, &file_name, &current_datetime);
-        printf("\n");
-    }
-    // end check file
-
-    else {
-        fprintf(fptr, "hallo;hallo;hallo\n");
-        fclose(fptr);
-
-        printf("\n\n%s erfolgreich beschrieben \t\t\t\t@ %s", file_name, current_datetime);
-        printf("\n\t\t\t\t\t\t\t\tPfad: %s", path);
-    }
-    // end write file
-}
+// ------------------------- CONTANTS FUNCTIONS ----------------------------------
 
 
 void pathDefinition(char* path, char* day_str, char* file_name) {
@@ -136,6 +105,23 @@ void timeConstants(char* time_str, char* day_str, char* current_datetime) {
 // end time constants
 
 
+// ------------------------- MAIN FUNCTIONS ----------------------------------
+
+
+void readPathInput(char* path_input) {
+    printf("Bitte Pfad angeben: ");
+    scanf("%s", path_input);
+}
+// end read path input
+
+
+void readComPathInput(char* com_path) {
+    printf("\nBitte COM Port angeben: ");
+    scanf("%s", com_path);
+}
+// end read path input
+
+
 void copyString(char* original, char* copy) {
     int i;
     for (i = 0; original[i] != '\0'; i++) {
@@ -146,27 +132,80 @@ void copyString(char* original, char* copy) {
 // end copy string
 
 
-/*******************************************************************************
-******************************* HAUPTPROGRAMM **********************************
-*******************************************************************************/
-int main(void) {
+void checkFile(FILE* fptr, char* path_check) {
+    fptr = fopen(path_check, "a");  // open file as "append"
 
+    if (fptr == NULL) {
+        error_PathNotFound();
+
+        printf("\n");
+        return;
+        // end throw error
+    }
+    fclose(fptr);
+    printf("\nPfad erfolgreich gewaehlt.\n");
+
+    read_path_loop = 0;
+}
+// end checkFile
+
+
+void checkSerialPort(char* com_path) {
     HANDLE hComm;
+    char temp_com_path[100] = "";
 
-    hComm = CreateFileA("\\\\.\\COM3",                //port name
+    // end local variables
+
+    strcat(temp_com_path, "\\\\.\\");
+    strcat(temp_com_path, com_path);
+
+    hComm = CreateFileA(temp_com_path,                //port name
         GENERIC_READ | GENERIC_WRITE, //Read/Write
         0,                            // No Sharing
         NULL,                         // No Security
         OPEN_EXISTING,// Open existing port only
         0,            // Non Overlapped I/O
         NULL);        // Null for Comm Devices
+    // end create virtual file
 
+    if (hComm == INVALID_HANDLE_VALUE) {
+        error_ComNotFound();
+        return;
+    }
+    CloseHandle(hComm);
+
+    read_com_loop = 0;
+}
+
+
+void readSerialPort(char* buffer, char* com_path) {
+    HANDLE hComm;
+    DCB Dcb;
+
+    char temp_com_path[100] = "";
+    int nbRead;
+    // end local variables
+
+
+    // end local variables
+
+    strcat(temp_com_path, "\\\\.\\");
+    strcat(temp_com_path, com_path);
+
+    hComm = CreateFileA(temp_com_path,                //port name
+        GENERIC_READ | GENERIC_WRITE, //Read/Write
+        0,                            // No Sharing
+        NULL,                         // No Security
+        OPEN_EXISTING,// Open existing port only
+        0,            // Non Overlapped I/O
+        NULL);        // Null for Comm Devices
+    // end create virtual file
+    
     if (hComm == INVALID_HANDLE_VALUE) {
         printf("Konnte COM Port nicht oeffnen.");
         return;
     }
-
-    DCB Dcb;
+    // end error handle
 
     GetCommState(hComm, &Dcb);
 
@@ -186,63 +225,139 @@ int main(void) {
     Dcb.fAbortOnError = 0;
     Dcb.fRtsControl = RTS_CONTROL_DISABLE;
     Dcb.fDtrControl = DTR_CONTROL_DISABLE;
+    // end config
 
     SetCommState(hComm, &Dcb);
-    char buffer[100];
-    int nbRead;
     ReadFile(hComm, buffer, 10, &nbRead, NULL);
     CloseHandle(hComm);
-    printf("%s", buffer);
+    // end read and close file
 
+}
+// end read serial port
+
+double getBufferAsDouble(char* buffer) {
+
+    double temp_temperature;
+    char* ptr;
+
+    ptr = strchr(buffer, 'â–‘');  // remove every char after 'â–‘' ('Â°') char.
+    if (ptr != NULL) {
+        *ptr = '\0';
+    }
+
+    memmove(buffer, buffer + 1, strlen(buffer));    // remove first element of string (always 'R')
+
+    sscanf(buffer, "%lf", &temp_temperature);       // converting string (char array) into double
+    // end get temperature out of string
+
+    return temp_temperature;
+}
+// end convert buffer
+
+
+void writeFile(FILE* fptr, char* path, char* file_name, double avg_temperature, char* current_datetime) {
+    fptr = fopen(path, "a");        // open file as "append"
+
+    if (fptr == NULL) {
+        error_FileNotWriteable(&path, &file_name, &current_datetime);
+        printf("\n");
+    }
+    // end check file
+
+    else {
+        fprintf(fptr, "%.1lfÂ°C; ;%s\n", avg_temperature, current_datetime);
+        fclose(fptr);
+
+        printf("\n\n%s erfolgreich beschrieben \t\t\t\t@ %s", file_name, current_datetime);
+        printf("\n\t\t\t\t\t\t\t\tPfad: %s", path);
+    }
+}
+// end write file
+
+
+/*******************************************************************************
+******************************* HAUPTPROGRAMM **********************************
+*******************************************************************************/
+int main(void) {
 
     FILE* fptr;
     char path_input[100];       // constant array -> doesn't get changed
     char path_check[100];       // copy of 'path_input' -> to check if path is findable or if file is writeable if already exists
     char path[100];             // copy of 'path_input' -> actual path
 
+    char com_input[100];
+    char check_com_path[100];
+    char com_path[100];
+
     char time_str_check[100];
     char day_str_check[100];
     char current_datetime_check[100];
-
     char file_name_check[100] = "LogFile_";
+
     // end local variables
 
-    readInput(&path_input);
-    copyString(path_input, path);
-    copyString(path_input, path_check);
-    // end Input
+    while (read_path_loop) {
+        readPathInput(&path_input);
+        copyString(path_input, path);
+        copyString(path_input, path_check);
+        // end Input
 
-    timeConstants(&time_str_check, &day_str_check, &current_datetime_check);
-    // end get time for checkFile
+        timeConstants(&time_str_check, &day_str_check, &current_datetime_check);
+        // end get time for checkFile
 
-    pathDefinition(&path_check, &day_str_check, &file_name_check);
-    // end get path for checkFile
+        pathDefinition(&path_check, &day_str_check, &file_name_check);
+        // end get path for checkFile
 
-    checkFile(&fptr, &path_check);
-    // end check if file exists 
+        checkFile(&fptr, &path_check);
+        // end check if file exists 
+    }
+
+    while (read_com_loop) {
+        readComPathInput(com_input);
+        copyString(com_input, com_path);
+        copyString(com_input, check_com_path);
+
+        checkSerialPort(check_com_path);
+    }
+    // end check serial port
+
+    // ---------------------------------------------
+
+    while (read_main_loop) {
+
+        int read_count = 0;
+
+        double avg_temperature;
+        double temp_temperature = 0;
+
+        char time_str[100];
+        char day_str[100];
+        char current_datetime[100];
+        char file_name[100] = "LogFile_";
+
+        char buffer[100];
+
+        timeConstants(&time_str, &day_str, &current_datetime);
+        // end get time
+
+        copyString(path_input, path);
+        pathDefinition(&path, &day_str, &file_name);
 
 
-    // ...
-    // end USB Port Input
+        while ((read_count <= 59) && (read_loop)) {  // 60 times
+            readSerialPort(&buffer, com_path);
+            temp_temperature += getBufferAsDouble(&buffer);
 
-    char time_str[100];
-    char day_str[100];
-    char current_datetime[100];
+            read_count++;
+        }
 
-    char file_name[100] = "LogFile_";
-    // end local variables
+        avg_temperature = temp_temperature / 60;   // 120 times per minute when waiting 500ms per iteration.
+        printf("%lf", avg_temperature);
+        writeFile(&fptr, &path, &file_name, avg_temperature, &current_datetime);
+        // end writeFile
 
-    timeConstants(&time_str, &day_str, &current_datetime);
-    // end get time
+        printf("\n");
+    }
 
-    copyString(path_input, path);
-    pathDefinition(&path, &day_str, &file_name);
-    // end get path
-    
-    writeFile(&fptr, &path, &file_name, &current_datetime);
-    // end writeFile
-
-
-    printf("\n");
     return (0);
 }
