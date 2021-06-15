@@ -25,6 +25,9 @@
 * Benötigte Libraries:
 * - stdlib.h
 * - stdio.h
+* - time.h
+* - string.h
+* - Windwos.h
 *
 * Copyright (©) 2021 by Andrin Schaller, CH-6300 Zug
 *******************************************************************************/
@@ -80,8 +83,8 @@ void error_FileNotWriteable(char* path, char* file_name, char* current_datetime)
 
 void pathDefinition(char* path, char* day_str, char* file_name) {
 
-    strcat(path, "\\LogFile_");
-    strcat(path, day_str);
+    strcat(path, "\\LogFile_");         // Connect strings
+    strcat(path, day_str);              
     strcat(path, ".csv");
 
     strcat(file_name, day_str);
@@ -124,8 +127,8 @@ void readComPathInput(char* com_path) {
 
 void copyString(char* original, char* copy) {
     int i;
-    for (i = 0; original[i] != '\0'; i++) {
-        copy[i] = original[i];
+    for (i = 0; original[i] != '\0'; i++) {     // Iteration through every array element
+        copy[i] = original[i];                  // Copy original element into copy element
     }
     copy[i] = '\0';
 }
@@ -133,9 +136,9 @@ void copyString(char* original, char* copy) {
 
 
 void checkFile(FILE* fptr, char* path_check) {
-    fptr = fopen(path_check, "a");  // open file as "append"
+    fptr = fopen(path_check, "a");              // open file as "append" -> if not existing: create file
 
-    if (fptr == NULL) {
+    if (fptr == NULL) {                         // if path doesn't exist, no permissions to create/write file, file is already open, ...
         error_PathNotFound();
 
         printf("\n");
@@ -159,20 +162,20 @@ void checkSerialPort(char* com_path) {
     strcat(temp_com_path, "\\\\.\\");
     strcat(temp_com_path, com_path);
 
-    hComm = CreateFileA(temp_com_path,                //port name
-        GENERIC_READ, //Read/Write
-        0,                            // No Sharing
-        NULL,                         // No Security
-        OPEN_EXISTING,// Open existing port only
-        0,            // Non Overlapped I/O
-        NULL);        // Null for Comm Devices
+    hComm = CreateFileA(temp_com_path,      // Port name               
+        GENERIC_READ,                       // Read only
+        0,                                  // No Sharing
+        NULL,                               // No Security
+        OPEN_EXISTING,                      // Open existing port only
+        0,                                  // Non Overlapped I/O
+        NULL);                              // Null for Comm Devices
     // end create virtual file
 
-    if (hComm == INVALID_HANDLE_VALUE) {
+    if (hComm == INVALID_HANDLE_VALUE) {    // check if COM port exists / is available to open
         error_ComNotFound();
         return;
     }
-    CloseHandle(hComm);
+    CloseHandle(hComm);                     // close virtual file
 
     read_com_loop = 0;
 }
@@ -192,18 +195,18 @@ void readSerialPort(char* buffer, char* com_path) {
     strcat(temp_com_path, "\\\\.\\");
     strcat(temp_com_path, com_path);
 
-    hComm = CreateFileA(temp_com_path,                //port name
-        GENERIC_READ, //Read/Write
-        0,                            // No Sharing
-        NULL,                         // No Security
-        OPEN_EXISTING,// Open existing port only
-        0,            // Non Overlapped I/O
-        NULL);        // Null for Comm Devices
+    hComm = CreateFileA(temp_com_path,      // Port name               
+        GENERIC_READ,                       // Read only
+        0,                                  // No Sharing
+        NULL,                               // No Security
+        OPEN_EXISTING,                      // Open existing port only
+        0,                                  // Non Overlapped I/O
+        NULL);                              // Null for Comm Devices
     // end create virtual file
     
-    GetCommState(hComm, &Dcb);
+    GetCommState(hComm, &Dcb);              // Retrieves the current control settings for a specified communications device.
 
-    Dcb.BaudRate = CBR_115200;
+    Dcb.BaudRate = CBR_115200;              // BaudRate: the number of symbols transmitted per period
     Dcb.StopBits = ONESTOPBIT;
     Dcb.ByteSize = 8;
     Dcb.Parity = NOPARITY;
@@ -221,9 +224,9 @@ void readSerialPort(char* buffer, char* com_path) {
     Dcb.fDtrControl = DTR_CONTROL_DISABLE;
     // end config
 
-    SetCommState(hComm, &Dcb);
-    ReadFile(hComm, buffer, 10, &nbRead, NULL);
-    CloseHandle(hComm);
+    SetCommState(hComm, &Dcb);                  // Configures a communications device according to the specifications in a device-control block (a DCB structure)
+    ReadFile(hComm, buffer, 10, &nbRead, NULL); // Reads data from the specified file or input/output (I/O) device
+    CloseHandle(hComm);                         
     // end read and close file
 
 }
@@ -234,14 +237,14 @@ double getBufferAsDouble(char* buffer) {
     double temp_temperature;
     char* ptr;
 
-    ptr = strchr(buffer, '░');  // remove every char after '░' ('°') char.
+    ptr = strchr(buffer, '░');                      // Removes every char after '░' ('°') char.
     if (ptr != NULL) {
         *ptr = '\0';
     }
 
-    memmove(buffer, buffer + 1, strlen(buffer));    // remove first element of string (always 'R')
+    memmove(buffer, buffer + 1, strlen(buffer));    // Removes first element of string (always 'R')
 
-    sscanf(buffer, "%lf", &temp_temperature);       // converting string (char array) into double
+    sscanf(buffer, "%lf", &temp_temperature);       // Converting string (char array) into double
     // end get temperature out of string
 
     return temp_temperature;
@@ -252,7 +255,7 @@ double getBufferAsDouble(char* buffer) {
 void writeFile(FILE* fptr, char* path, char* file_name, double avg_temperature, 
     char* current_datetime) {
     
-    fptr = fopen(path, "a");        // open file as "append"
+    fptr = fopen(path, "a");                        // Opens file as "append"
 
     if (fptr == NULL) {
 
@@ -263,7 +266,7 @@ void writeFile(FILE* fptr, char* path, char* file_name, double avg_temperature,
 
     else {
 
-        fprintf(fptr, "%.1lf%c C; ;%s\n", avg_temperature, '°', current_datetime); 
+        fprintf(fptr, "%.1lf%c C; ;%s\n", avg_temperature, '°', current_datetime);          // Writes into file
         fclose(fptr);
 
         printf("\n\n%s - Success writing the file\t\t@ %s", file_name, current_datetime);
@@ -278,14 +281,14 @@ void writeFile(FILE* fptr, char* path, char* file_name, double avg_temperature,
 *******************************************************************************/
 int main(void) {
 
-    FILE* fptr;
-    char path_input[100];       // constant array -> doesn't get changed
-    char path_check[100];       // copy of 'path_input' -> to check if path is findable or if file is writeable if already exists
-    char path[100];             // copy of 'path_input' -> actual path
+    FILE* fptr;                 
+    char path_input[100];       // Constant array -> doesn't get changed
+    char path_check[100];       // Copy of 'path_input' -> to check if path is findable or if file is writeable if already exists
+    char path[100];             // Copy of 'path_input' -> actual path
 
-    char com_input[100];
-    char check_com_path[100];
-    char com_path[100];
+    char com_input[100];        // Input of COM Port path
+    char check_com_path[100];   // Copy of 'com_input' -> to check if COM Port is available
+    char com_path[100];         // Copy of 'com_input' -> actual COM Port path
 
     char time_str_check[100];
     char day_str_check[100];
@@ -294,7 +297,7 @@ int main(void) {
 
     // end local variables
 
-    while (read_path_loop) {
+    while (read_path_loop) {                // loop to repeat file reading after writing file
         readPathInput(&path_input);
         copyString(path_input, path);
         copyString(path_input, path_check);
@@ -310,7 +313,7 @@ int main(void) {
         // end check if file exists 
     }
 
-    while (read_com_loop) {
+    while (read_com_loop) {                 // loop to save COM Port data after every second
         readComPathInput(com_input);
         copyString(com_input, com_path);
         copyString(com_input, check_com_path);
@@ -319,7 +322,7 @@ int main(void) {
     }
     // end check serial port
 
-    // ---------------------------------------------
+    // -------------------------------------------------------------------------------------
 
     printf("\nThe serial port is read out and the data get calculated...");
     while (read_main_loop) {
@@ -343,14 +346,14 @@ int main(void) {
         pathDefinition(&path, &day_str, &file_name);
 
 
-        while ((read_count <= 59) && (read_loop)) {  // 60 times (1 time per second)
+        while ((read_count <= 59) && (read_loop)) {          // repeat 60 times (1 time per second)
             readSerialPort(&buffer, com_path);
             temp_temperature += getBufferAsDouble(&buffer);
 
             read_count++;
         }
 
-        avg_temperature = temp_temperature / 60;   // 120 times per minute when waiting 500ms per iteration.
+        avg_temperature = temp_temperature / 60;             // repeat 60 times per minute when waiting 1s automatically per iteration.
         writeFile(&fptr, &path, &file_name, avg_temperature, &current_datetime);
         // end writeFile
 
