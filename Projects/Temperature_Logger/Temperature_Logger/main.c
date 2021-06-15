@@ -33,10 +33,10 @@
 #define _CRT_SECURE_NO_WARNINGS
 
 /***  Include Files ***********************************************************/
-#include <stdlib.h> /* Funktionsbibliothek: Hilfsfunktionen */
-#include <stdio.h>  /* Funktionsbibliothek: Standard Ein- Ausgabe */
-#include <time.h>   /* Zeitfunktionen */
-#include <string.h> /* Weitere String-Funktionen */
+#include <stdlib.h>  /* Funktionsbibliothek: Hilfsfunktionen */
+#include <stdio.h>   /* Funktionsbibliothek: Standard Ein- Ausgabe */
+#include <time.h>    /* Zeitfunktionen */
+#include <string.h>  /* Weitere String-Funktionen */
 #include <Windows.h> /* Für Sleep() Funktion */
 
 /***  Globale Deklarationen und Definitionen **********************************/
@@ -51,7 +51,7 @@ int read_loop = 1;
 
 void error_PathNotFound() {
 
-    printf("\nError reading/writing the file. Possible error causes: ");
+    printf("\nERROR reading/writing the file. Possible error causes: ");
     printf("\n\t- Path not found");
     printf("\n\t- File not writeable");
     printf("\n\t- File is opened by another user\n");
@@ -61,7 +61,7 @@ void error_PathNotFound() {
 
 void error_ComNotFound() {
 
-    printf("\nError! COM Port not found.");
+    printf("\ERROR! COM Port not found.");
     printf("\nPlease make sure you provide the correct COM Port.\n");
 }
 // end error: PathNotFound
@@ -69,13 +69,13 @@ void error_ComNotFound() {
 
 void error_FileNotWriteable(char* path, char* file_name, char* current_datetime) {
 
-    printf("\n\n%s - Error writing the file\t\t@ %s", file_name, current_datetime);
+    printf("\n\n%s - ERROR writing the file\t\t@ %s", file_name, current_datetime);
     printf("\n\t\t\t\t\t\t\t\tPfad: %s", path);
 }
 // end error: FileNotWriteable
 
 
-// ------------------------- CONTANTS FUNCTIONS ----------------------------------
+// ------------------------- CONSTANTS FUNCTIONS ----------------------------------
 
 
 void pathDefinition(char* path, char* day_str, char* file_name) {
@@ -109,14 +109,14 @@ void timeConstants(char* time_str, char* day_str, char* current_datetime) {
 
 
 void readPathInput(char* path_input) {
-    printf("Bitte Pfad angeben: ");
+    printf("Please enter the path where the log file should be saved: ");
     scanf("%s", path_input);
 }
 // end read path input
 
 
 void readComPathInput(char* com_path) {
-    printf("\nBitte COM Port angeben: ");
+    printf("\nPlease enter the COM port where the ELOB-board is pluged in: ");
     scanf("%s", com_path);
 }
 // end read path input
@@ -143,7 +143,7 @@ void checkFile(FILE* fptr, char* path_check) {
         // end throw error
     }
     fclose(fptr);
-    printf("\nPfad erfolgreich gewaehlt.\n");
+    printf("\nPath selected successfully.\n");
 
     read_path_loop = 0;
 }
@@ -160,7 +160,7 @@ void checkSerialPort(char* com_path) {
     strcat(temp_com_path, com_path);
 
     hComm = CreateFileA(temp_com_path,                //port name
-        GENERIC_READ | GENERIC_WRITE, //Read/Write
+        GENERIC_READ, //Read/Write
         0,                            // No Sharing
         NULL,                         // No Security
         OPEN_EXISTING,// Open existing port only
@@ -193,7 +193,7 @@ void readSerialPort(char* buffer, char* com_path) {
     strcat(temp_com_path, com_path);
 
     hComm = CreateFileA(temp_com_path,                //port name
-        GENERIC_READ | GENERIC_WRITE, //Read/Write
+        GENERIC_READ, //Read/Write
         0,                            // No Sharing
         NULL,                         // No Security
         OPEN_EXISTING,// Open existing port only
@@ -201,12 +201,6 @@ void readSerialPort(char* buffer, char* com_path) {
         NULL);        // Null for Comm Devices
     // end create virtual file
     
-    if (hComm == INVALID_HANDLE_VALUE) {
-        printf("Konnte COM Port nicht oeffnen.");
-        return;
-    }
-    // end error handle
-
     GetCommState(hComm, &Dcb);
 
     Dcb.BaudRate = CBR_115200;
@@ -255,21 +249,25 @@ double getBufferAsDouble(char* buffer) {
 // end convert buffer
 
 
-void writeFile(FILE* fptr, char* path, char* file_name, double avg_temperature, char* current_datetime) {
+void writeFile(FILE* fptr, char* path, char* file_name, double avg_temperature, 
+    char* current_datetime) {
+    
     fptr = fopen(path, "a");        // open file as "append"
 
     if (fptr == NULL) {
-        error_FileNotWriteable(&path, &file_name, &current_datetime);
+
+        error_FileNotWriteable(path, file_name, current_datetime);
         printf("\n");
     }
     // end check file
 
     else {
-        fprintf(fptr, "%.1lf°C; ;%s\n", avg_temperature, current_datetime);
+
+        fprintf(fptr, "%.1lf%c C; ;%s\n", avg_temperature, 176, current_datetime); // 176 = °
         fclose(fptr);
 
-        printf("\n\n%s erfolgreich beschrieben \t\t\t\t@ %s", file_name, current_datetime);
-        printf("\n\t\t\t\t\t\t\t\tPfad: %s", path);
+        printf("\n\n%s - Success writing the file\t\t@ %s", file_name, current_datetime);
+        printf("\n\t\t\t\t\t\t\t\Path: %s", path);
     }
 }
 // end write file
@@ -323,6 +321,7 @@ int main(void) {
 
     // ---------------------------------------------
 
+    printf("\nThe serial port is read out and the data get calculated...");
     while (read_main_loop) {
 
         int read_count = 0;
@@ -344,15 +343,14 @@ int main(void) {
         pathDefinition(&path, &day_str, &file_name);
 
 
-        while ((read_count <= 59) && (read_loop)) {  // 60 times
+        while ((read_count <= 1) && (read_loop)) {  // 60 times (1 time per second)
             readSerialPort(&buffer, com_path);
             temp_temperature += getBufferAsDouble(&buffer);
 
             read_count++;
         }
 
-        avg_temperature = temp_temperature / 60;   // 120 times per minute when waiting 500ms per iteration.
-        printf("%lf", avg_temperature);
+        avg_temperature = temp_temperature / 2;   // 120 times per minute when waiting 500ms per iteration.
         writeFile(&fptr, &path, &file_name, avg_temperature, &current_datetime);
         // end writeFile
 
